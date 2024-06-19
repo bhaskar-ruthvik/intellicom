@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
-import openai from './utils'
+import { commentFunction} from './utils';
+
 
 export function activate(context: vscode.ExtensionContext) {
 
@@ -19,13 +20,7 @@ export function activate(context: vscode.ExtensionContext) {
 			const selection = editor.selection;
 			const cursor = editor.selection.start;
 			const word = document.getText(selection);
-			const completion = await openai.chat.completions.create({
-				messages: [{ role: "system", content: " You are code commenting bot. You will be given a code and you have to return a comment about what the code does." },{role: "user", content: `Can you return the comment in plain text?\nCode:\n${word}`}],
-				model: "gpt-3.5-turbo-16k",
-			  });
-			let commentLines = completion.choices[0].message.content!.split('.')
-			commentLines = commentLines.map((line: string)=> '#'+line);
-			const comment = commentLines.slice(0,-1).join('\n')
+			const comment = await commentFunction(word);
 			editor.edit(editBuilder =>{
 				editBuilder.replace(selection, comment+'\n'+word)
 			})
